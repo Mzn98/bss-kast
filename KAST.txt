@@ -1,0 +1,127 @@
+// ==UserScript==
+// @name         KAST - KPI Assessment Support Tool
+// @namespace    http://tampermonkey.net/
+// @version      1.0
+// @description  Mini tool for supporting KPI assessment (*￣3￣)╭
+// @author       Mzn
+// @include      https://pms.bssgroup.vn/default/viewtaskdetail/*
+// @icon         https://bssgroup.vn/wp-content/uploads/2022/10/favicon.png
+// @grant        none
+// ==/UserScript==
+
+(function () {
+    const memberList = [
+        "Nguyễn Văn Ninh",
+        "Trần Đức Nam",
+        "Nguyễn Kim Tùng",
+        "Cao Nam Trường",
+        "Bùi Đình Dự",
+        "Hoàng Ngọc Nhật",
+        "Vũ Minh Hiếu",
+        "Nguyễn An Thuyên"
+    ]
+
+    function appendDropdown(optionName, selector, data) {
+        const option = document.createElement('option');
+        option.value = optionName;
+        if (data == optionName) {
+            option.selected = 'selected'
+        }
+        option.textContent = optionName;
+        selector.appendChild(option);
+    }
+
+    function changeBgColor(eleList) {
+        const noLogCmtColor = 'rgb(255 212 157)'
+        const logCmtColor = 'rgb(253 241 225)'
+        let allComment = document.querySelectorAll(".comment_item")
+        allComment.forEach(cmt => {
+            cmt.style.backgroundColor = ''
+        });
+        eleList.forEach(ele => {
+            const logTimeEle = ele.querySelector(".comment_item > span:nth-child(2) > span:nth-child(2)")
+            if (logTimeEle && logTimeEle.textContent.includes("Time Log")) {
+                ele.style.backgroundColor = noLogCmtColor
+            } else ele.style.backgroundColor = logCmtColor
+        });
+    }
+
+    function getData() {
+        const name = localStorage.getItem('mznTargetMember')
+        const month = localStorage.getItem('mznTargetMonth')
+        return { name, month }
+    }
+
+    function getCommentLineByNameAndMonth() {
+        const { name, month } = getData()
+        let allComment = document.querySelectorAll(".comment_item")
+        var targetComment = Array.from(allComment).filter(el => el.querySelector(".bc-usercm").textContent.trim() == name);
+        targetComment = Array.from(targetComment).filter(el => parseInt(el.querySelector(".comment_item > span:nth-child(2) > span").textContent.trim().split('-')[1], 10) == month);
+        changeBgColor(targetComment)
+    }
+
+    function loadScript() {
+        const targetDiv = document.querySelector(".wrap_comment")
+        const observer = new MutationObserver((mutationsList, observer) => {
+            let isUpdate = false
+            for (let mutation of mutationsList) {
+                if (mutation.type === 'childList') {
+                    isUpdate = true
+                }
+            }
+            if(isUpdate){
+                getCommentLineByNameAndMonth()
+            }
+        });
+
+        const config = {
+            childList: true, 
+            subtree: true
+        };
+        observer.observe(targetDiv, config);
+        getCommentLineByNameAndMonth()
+    }
+
+    //append function block with fixed position
+    var divBlock = document.createElement("div");
+    divBlock.classList.add('mzn');
+    divBlock.style = "top:0;left:calc(50% - 150px);position:fixed;z-index:99999;width:300px;height:5rem;background-color:#31353d;border:none;";
+    document.body.appendChild(divBlock);
+
+    // Create a new select element
+    const selectName = document.createElement('select');
+    const selectMonth = document.createElement('select');
+
+    // Set style for select ele
+    selectName.style = "height:100%;width:70%";
+    selectMonth.style = "height:100%;width:30%";
+
+    // Set any desired attributes or properties
+    selectName.id = 'memberList';
+    selectMonth.id = 'targetMonth';
+
+    var { name, month } = getData()
+    memberList.forEach(member => {
+        appendDropdown(member, selectName, name)
+    });
+
+    for (let i = 0; i < 12; i++) {
+        appendDropdown(`${i}`, selectMonth, month)
+    }
+
+    selectName.addEventListener('change', function (event) {
+        localStorage.setItem('mznTargetMember', event.target.value)
+        getCommentLineByNameAndMonth()
+    });
+    selectMonth.addEventListener('change', function (event) {
+        localStorage.setItem('mznTargetMonth', event.target.value)
+        getCommentLineByNameAndMonth()
+    });
+
+    // Append the select element to a target HTML element
+    const targetElement = document.getElementsByClassName('mzn');
+    targetElement[0].appendChild(selectName);
+    targetElement[0].appendChild(selectMonth);
+
+    loadScript()
+})();

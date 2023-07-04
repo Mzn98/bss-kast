@@ -18,8 +18,11 @@
         "Bùi Đình Dự",
         "Hoàng Ngọc Nhật",
         "Vũ Minh Hiếu",
-        "Nguyễn An Thuyên"
+        "Nguyễn An Thuyên",
+        "Nguyễn Thế Huy"
     ]
+
+    var commitList = []
 
     function appendDropdown(optionName, selector, data) {
         const option = document.createElement('option');
@@ -39,7 +42,7 @@
             cmt.style.backgroundColor = ''
         });
         eleList.forEach(ele => {
-            const logTimeEle = ele.querySelector(".comment_item > span:nth-child(2) > span:nth-child(2)")
+            const logTimeEle = ele.querySelector(".comment_item > span:nth-child(2)")
             if (logTimeEle && logTimeEle.textContent.includes("Time Log")) {
                 ele.style.backgroundColor = noLogCmtColor
             } else ele.style.backgroundColor = logCmtColor
@@ -57,6 +60,18 @@
         let allComment = document.querySelectorAll(".comment_item")
         var targetComment = Array.from(allComment).filter(el => el.querySelector(".bc-usercm").textContent.trim() == name);
         targetComment = Array.from(targetComment).filter(el => parseInt(el.querySelector(".comment_item > span:nth-child(2) > span").textContent.trim().split('-')[1], 10) == month);
+
+        targetComment.forEach(ele => {
+            var commentUrl = ele.querySelectorAll('[class*="comment_item"] > p > a')
+            if(commentUrl){
+                commentUrl.forEach(e => {
+                    if(e.href.includes('/commits/') && !commitList.includes(e.href)){
+                        commitList.push(e.href)
+                        window.open(e.href, '_blank');
+                    }
+                });
+            }
+        });
         changeBgColor(targetComment)
     }
 

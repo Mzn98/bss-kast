@@ -55,7 +55,7 @@
         return { name, month }
     }
 
-    function getCommentLineByNameAndMonth() {
+    function getCommentLineByNameAndMonth(isUpdate) {
         const { name, month } = getData()
         let allComment = document.querySelectorAll(".comment_item")
         var targetComment = Array.from(allComment).filter(el => el.querySelector(".bc-usercm").textContent.trim() == name);
@@ -63,15 +63,17 @@
 
         targetComment.forEach(ele => {
             var commentUrl = ele.querySelectorAll('[class*="comment_item"] > p > a')
-            if(commentUrl){
+            if (commentUrl) {
                 commentUrl.forEach(e => {
-                    if(e.href.includes('/commits/') && !commitList.includes(e.href)){
+                    if (e.href.includes('/commits/') && !commitList.includes(e.href)) {
                         commitList.push(e.href)
-                        window.open(e.href, '_blank');
+                        window.open(e.href);
                     }
                 });
             }
         });
+        targetComment[0].scrollIntoView()
+
         changeBgColor(targetComment)
     }
 
@@ -84,14 +86,13 @@
                     isUpdate = true
                 }
             }
-            if(isUpdate){
-                getCommentLineByNameAndMonth()
+            if (isUpdate) {
+                getCommentLineByNameAndMonth(true)
             }
         });
 
         const config = {
-            childList: true, 
-            subtree: true
+            childList: true
         };
         observer.observe(targetDiv, config);
         getCommentLineByNameAndMonth()
